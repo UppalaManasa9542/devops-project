@@ -1,0 +1,36 @@
+name: DevOps CI Pipeline (Improved)
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
+
+      # 1️⃣ Build Docker Image
+      - name: Build image
+        run: docker build -t flask-app .
+
+      # 2️⃣ Run container in background
+      - name: Run container
+        run: docker run -d -p 5000:5000 --name flask-test flask-app
+
+      # 3️⃣ Wait for app to start
+      - name: Wait for app
+        run: sleep 5
+
+      # 4️⃣ Test health endpoint
+      - name: Test health endpoint
+        run: curl http://localhost:5000/health
+
+      # 5️⃣ Cleanup container
+      - name: Stop container
+        run: docker stop flask-test && docker rm flask-test
