@@ -5,13 +5,17 @@ on:
     branches:
       - project-2-cicd
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   build-test:
     runs-on: ubuntu-latest
 
     steps:
 
-      # 1. Download the repository code into the GitHub runner
+      # 1. Download the repository code
       - name: Checkout code
         uses: actions/checkout@v4
 
