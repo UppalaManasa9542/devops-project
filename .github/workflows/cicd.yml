@@ -1,0 +1,29 @@
+name: Flask Application CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - project-2-cicd
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t flask-app .
+
+      - name: Run container
+        run: docker run -d -p 5000:5000 --name flask-test flask-app
+
+      - name: Wait for app
+        run: sleep 5
+
+      - name: Test health endpoint
+        run: curl http://localhost:5000/health
+
+      - name: Stop container
+        run: docker stop flask-test && docker rm flask-test
