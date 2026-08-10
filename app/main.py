@@ -16,6 +16,10 @@ def get_db_connection():
 def home():
     return "Flask + Postgres Connected"
 
+@app.route("/health")
+def health():
+    return jsonify({"status": "ok"})
+
 @app.route("/init")
 def init_db():
     conn = get_db_connection()
@@ -39,7 +43,10 @@ def add(name):
     conn = get_db_connection()
     cur = conn.cursor()
 
-    cur.execute("INSERT INTO employees (name) VALUES (%s)", (name,))
+    cur.execute(
+        "INSERT INTO employees (name) VALUES (%s)",
+        (name,)
+    )
 
     conn.commit()
     cur.close()
