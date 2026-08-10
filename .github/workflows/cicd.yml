@@ -38,7 +38,7 @@ jobs:
       - name: Tag Docker image
         run: docker tag flask-app:latest 670412093221.dkr.ecr.us-east-2.amazonaws.com/flask-app:latest
 
-      # 6. Push the image to Amazon ECR
+      # 6. Push the Docker image to ECR
       - name: Push Docker image to ECR
         run: docker push 670412093221.dkr.ecr.us-east-2.amazonaws.com/flask-app:latest
 
@@ -57,3 +57,28 @@ jobs:
       # 10. Stop and remove the test container
       - name: Stop container
         run: docker stop flask-test && docker rm flask-test
+
+      # 11. Deploy the new image to EC2 using AWS Systems Manager
+      - name: Deploy to EC2 via SSM
+        run: |
+          COMMAND_ID=$(aws ssm send-command \
+            --region us-east-2 \
+            --instance-ids i-012fc62073822cd9b \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=[
+              "cd /home/ubuntu/devops-project",
+              "aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 670412093221.dkr.ecr.us-east-2.amazonaws.com",
+              "docker compose pull web",
+              "docker compose up -d web"
+            ]' \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "SSM Command ID: $COMMAND_ID"
+
+          aws ssm wait command-executed \
+            --region us-east-2 \
+            --command-id "$COMMAND_ID" \
+            --instance-id i-012fc62073822cd9b
+
+          echo "EC2 deployment completed successfully."
