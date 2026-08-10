@@ -34,18 +34,26 @@ jobs:
       - name: Build Docker image
         run: docker build -t flask-app .
 
-      # 5. Run the container for testing
+      # 5. Tag the image for Amazon ECR
+      - name: Tag Docker image
+        run: docker tag flask-app:latest 670412093221.dkr.ecr.us-east-2.amazonaws.com/flask-app:latest
+
+      # 6. Push the image to Amazon ECR
+      - name: Push Docker image to ECR
+        run: docker push 670412093221.dkr.ecr.us-east-2.amazonaws.com/flask-app:latest
+
+      # 7. Run the container for testing
       - name: Run container
         run: docker run -d -p 5000:5000 --name flask-test flask-app
 
-      # 6. Give Flask time to start
+      # 8. Give Flask time to start
       - name: Wait for app
         run: sleep 5
 
-      # 7. Test the application
+      # 9. Test the application
       - name: Test health endpoint
         run: curl http://localhost:5000/health
 
-      # 8. Stop and remove the test container
+      # 10. Stop and remove the test container
       - name: Stop container
         run: docker stop flask-test && docker rm flask-test
